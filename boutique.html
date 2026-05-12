@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boutique Fanoume · Madagascar</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9f8f5;color:#1a1a18;font-size:14px}
+header{background:#1a1a18;color:#fff;padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.header-inner{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-size:18px;font-weight:700;letter-spacing:-.5px}
+.logo span{color:#EF9F27}
+.cart-btn{background:#EF9F27;color:#1a1a18;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
+.cart-btn:hover{background:#d4890f}
+.hero{background:linear-gradient(135deg,#1a1a18 0%,#2d2d2a 100%);color:#fff;padding:40px 20px;text-align:center}
+.hero h2{font-size:26px;font-weight:700;margin-bottom:8px}
+.hero p{color:#aaa;font-size:14px}
+.container{max-width:1100px;margin:0 auto;padding:24px 16px}
+.section-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.cat-btn{padding:6px 14px;border:1px solid #ddd;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;font-family:inherit;font-weight:500;transition:.15s}
+.cat-btn:hover,.cat-btn.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+@media(max-width:480px){.prod-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+.prod-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);transition:.2s;cursor:pointer}
+.prod-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.12);transform:translateY(-2px)}
+.prod-card.out{opacity:.6;cursor:default}
+.prod-img{width:100%;height:160px;object-fit:cover;background:#f0efe8;display:flex;align-items:center;justify-content:center;font-size:48px;color:#ddd}
+.prod-img img{width:100%;height:160px;object-fit:cover}
+.prod-body{padding:12px}
+.prod-nom{font-weight:600;font-size:13px;margin-bottom:4px}
+.prod-prix{font-size:15px;font-weight:700;color:#1D9E75;margin-bottom:6px}
+.prod-stock{font-size:11px;color:#888}
+.prod-stock.out{color:#D85A30}
+.add-btn{width:100%;padding:8px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit;transition:.15s}
+.add-btn:hover{background:#333}
+.add-btn:disabled{background:#ccc;cursor:default}
+.qty-ctrl{display:flex;align-items:center;gap:6px;margin-top:8px}
+.qty-ctrl button{width:28px;height:28px;border:1px solid #ddd;border-radius:6px;background:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.qty-ctrl button:hover{background:#f0efe8}
+.qty-ctrl span{flex:1;text-align:center;font-weight:600;font-size:14px}
+
+/* Panier drawer */
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;opacity:0;transition:.25s}
+.drawer-bg.open{display:block;opacity:1}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:min(420px,100vw);background:#fff;z-index:201;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.15)}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:16px 20px;border-bottom:1px solid #f0efe8;display:flex;align-items:center;justify-content:space-between}
+.drawer-header h3{font-size:16px;font-weight:700}
+.drawer-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f0efe8}
+.cart-item:last-child{border-bottom:none}
+.cart-item-img{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#f0efe8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:#ccc;overflow:hidden}
+.cart-item-img img{width:56px;height:56px;object-fit:cover}
+.cart-item-info{flex:1}
+.cart-item-nom{font-weight:600;font-size:13px;margin-bottom:3px}
+.cart-item-prix{font-size:12px;color:#888;margin-bottom:6px}
+.cart-item-ctrl{display:flex;align-items:center;gap:8px}
+.ci-btn{width:24px;height:24px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.ci-btn:hover{background:#f0efe8}
+.cart-item-del{margin-left:auto;background:none;border:none;color:#D85A30;cursor:pointer;font-size:18px}
+.drawer-footer{padding:16px 20px;border-top:1px solid #f0efe8}
+.cart-total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;margin-bottom:14px}
+.checkout-btn{width:100%;padding:12px;background:#1D9E75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.checkout-btn:hover{background:#17856a}
+.empty-cart{text-align:center;padding:40px 20px;color:#aaa;font-size:13px}
+
+/* Modal commande */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:4px}
+.modal p{font-size:13px;color:#888;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:12px;color:#666;display:block;margin-bottom:4px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;font-size:13px;border:1px solid #ddd;border-radius:8px;font-family:inherit}
+.form-group textarea{height:70px;resize:none}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{flex:1;padding:11px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-cancel{background:#f5f4f0;border:1px solid #ddd;color:#666}
+.btn-confirm{background:#1D9E75;border:none;color:#fff}
+.btn-confirm:hover{background:#17856a}
+.order-summary{background:#f9f8f5;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px}
+.order-summary .row{display:flex;justify-content:space-between;padding:3px 0}
+.order-summary .total{font-weight:700;font-size:14px;border-top:1px solid #e8e7e0;margin-top:6px;padding-top:6px}
+.payment-box{background:#E6F1FB;border:1px solid #b5d4f4;border-radius:8px;padding:12px;font-size:13px;color:#185FA5;margin-bottom:14px}
+.payment-box b{display:block;margin-bottom:4px}
+
+/* Confirmation */
+.success-modal{text-align:center;padding:12px 0}
+.success-icon{font-size:56px;margin-bottom:12px}
+.badge-stock{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.bs-ok{background:#E1F5EE;color:#0F6E56}
+.bs-low{background:#FAEEDA;color:#854F0B}
+.bs-out{background:#FAECE7;color:#993C1D}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">Boutique <span>Fanoume</span></div>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Panier <span id="cart-count" style="background:#fff;color:#1a1a18;border-radius:12px;padding:1px 7px;font-size:12px">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <h2>🛍️ Nos Produits</h2>
+  <p>Livraison à domicile ou retrait en main propre · Paiement MVola / Orange Money</p>
+</div>
+
+<div class="container">
+  <div class="cats" id="cats">
+    <button class="cat-btn active" onclick="filterCat('Tous')">Tous</button>
+  </div>
+  <div class="prod-grid" id="prod-grid">
+    <div style="color:#aaa;font-size:13px;grid-column:1/-1">Chargement des produits...</div>
+  </div>
+</div>
+
+<!-- Drawer panier -->
+<div class="drawer-bg" id="drawer-bg" onclick="closeCart()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h3>🛒 Mon panier</h3>
+    <button class="drawer-close" onclick="closeCart()">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-footer" id="drawer-footer" style="display:none">
+    <div class="cart-total"><span>Total</span><span id="cart-total-val"></span></div>
+    <button class="checkout-btn" onclick="openCheckout()">Commander →</button>
+  </div>
+</div>
+
+<!-- Modal commande -->
+<div class="modal-bg" id="checkout-modal">
+  <div class="modal">
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://oxibglwyiygdruummwqq.supabase.co';
+const SB_KEY = 'sb_publishable_OD48fjY3xSdDmEiM9xMvAg_zcQsyvkB';
+const H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};
+
+// Numéro MVola/Orange Money à afficher aux clients
+const MVOLA_NUM = '038 71 867 42'; // ← MODIFIEZ AVEC VOTRE NUMÉRO
+const ORANGE_NUM = '032 XX XXX XX'; // ← MODIFIEZ AVEC VOTRE NUMÉRO
+const SHOP_NAME = 'Boutique Fanoume';
+
+let produits = [];
+let panier = []; // [{prod, qte}]
+let currentCat = 'Tous';
+
+async function sb(path,method='GET',body=null){
+  const opts={method,headers:H};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(SB_URL+'/rest/v1/'+path,opts);
+  if(!r.ok) throw new Error(await r.text());
+  const t=await r.text();
+  return t?JSON.parse(t):null;
+}
+
+function fAr(n){return Math.round(n||0).toLocaleString('fr-FR')+' Ar';}
+
+async function loadProduits(){
+  try{
+    const [prods, cfg] = await Promise.all([
+      sb('produits?select=*&order=nom'),
+      sb('config?select=*')
+    ]);
+    produits = (prods||[]).filter(p => p.prix_vente); // seulement produits avec prix
+    // Si pas de colonne prix_vente, afficher tous
+    if(!produits.length) produits = prods||[];
+    renderCats();
+    renderProduits();
+  }catch(e){
+    document.getElementById('prod-grid').innerHTML='<p style="color:#D85A30;font-size:13px;grid-column:1/-1">Erreur de chargement. Réessayez.</p>';
+  }
+}
+
+function renderCats(){
+  const cats = ['Tous', ...new Set(produits.map(p=>p.cat).filter(Boolean))];
+  document.getElementById('cats').innerHTML = cats.map(c=>
+    `<button class="cat-btn ${c===currentCat?'active':''}" onclick="filterCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function filterCat(cat){
+  currentCat=cat;
+  renderCats();
+  renderProduits();
+}
+
+function renderProduits(){
+  const list = currentCat==='Tous' ? produits : produits.filter(p=>p.cat===currentCat);
+  if(!list.length){
+    document.getElementById('prod-grid').innerHTML='<p style="color:#aaa;font-size:13px;grid-column:1/-1">Aucun produit disponible.</p>';
+    return;
+  }
+  document.getElementById('prod-grid').innerHTML = list.map(p=>{
+    const enPanier = panier.find(x=>x.prod.id===p.id);
+    const rupture = p.stk<=0;
+    const prix = p.prix_vente ? fAr(p.prix_vente) : '— Ar';
+    const imgHtml = p.photo ? `<img src="${p.photo}" alt="${p.nom}" onerror="this.parentElement.innerHTML='📦'">` : '📦';
+    const stockBadge = rupture ? `<span class="badge-stock bs-out">Rupture de stock</span>` :
+      p.stk<=p.seuil ? `<span class="badge-stock bs-low">Stock limité (${p.stk})</span>` :
+      `<span class="badge-stock bs-ok">En stock</span>`;
+    const btnHtml = rupture ? `<button class="add-btn" disabled>Indisponible</button>` :
+      enPanier ? `<div class="qty-ctrl">
+        <button onclick="changeQte('${p.id}',-1)">−</button>
+        <span>${enPanier.qte}</span>
+        <button onclick="changeQte('${p.id}',1)">+</button>
+      </div>` :
+      `<button class="add-btn" onclick="addToCart('${p.id}')">+ Ajouter au panier</button>`;
+    return `<div class="prod-card ${rupture?'out':''}">
+      <div class="prod-img">${imgHtml}</div>
+      <div class="prod-body">
+        <div class="prod-nom">${p.nom}</div>
+        <div class="prod-prix">${prix}</div>
+        <div>${stockBadge}</div>
+        ${btnHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id){
+  const p = produits.find(x=>x.id===id);
+  if(!p||p.stk<=0) return;
+  const existing = panier.find(x=>x.prod.id===id);
+  if(existing){
+    if(existing.qte < p.stk) existing.qte++;
+  } else {
+    panier.push({prod:p, qte:1});
+  }
+  updateCartCount();
+  renderProduits();
+}
+
+function changeQte(id, delta){
+  const idx = panier.findIndex(x=>x.prod.id===id);
+  if(idx===-1) return;
+  panier[idx].qte += delta;
+  if(panier[idx].qte <= 0) panier.splice(idx,1);
+  const p = produits.find(x=>x.id===id);
+  if(p && panier[idx] && panier[idx].qte > p.stk) panier[idx].qte = p.stk;
+  updateCartCount();
+  renderProduits();
+  renderDrawer();
+}
+
+function updateCartCount(){
+  const total = panier.reduce((s,x)=>s+x.qte,0);
+  document.getElementById('cart-count').textContent = total;
+}
+
+function openCart(){
+  renderDrawer();
+  document.getElementById('drawer-bg').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeCart(){
+  document.getElementById('drawer-bg').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+function renderDrawer(){
+  const body = document.getElementById('drawer-body');
+  const footer = document.getElementById('drawer-footer');
+  if(!panier.length){
+    body.innerHTML='<div class="empty-cart">🛒<br><br>Votre panier est vide.<br><small>Ajoutez des produits pour commencer.</small></div>';
+    footer.style.display='none';
+    return;
+  }
+  const total = panier.reduce((s,x)=>s+(x.prod.prix_vente||0)*x.qte,0);
+  body.innerHTML = panier.map(item=>`
+    <div class="cart-item">
+      <div class="cart-item-img">${item.prod.photo?`<img src="${item.prod.photo}">`:'📦'}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-nom">${item.prod.nom}</div>
+        <div class="cart-item-prix">${fAr(item.prod.prix_vente||0)} × ${item.qte} = <b>${fAr((item.prod.prix_vente||0)*item.qte)}</b></div>
+        <div class="cart-item-ctrl">
+          <button class="ci-btn" onclick="changeQte('${item.prod.id}',-1)">−</button>
+          <span style="font-weight:600;min-width:24px;text-align:center">${item.qte}</span>
+          <button class="ci-btn" onclick="changeQte('${item.prod.id}',1)">+</button>
+          <button class="cart-item-del" onclick="removeFromCart('${item.prod.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('cart-total-val').textContent = fAr(total);
+  footer.style.display='block';
+}
+
+function removeFromCart(id){
+  panier = panier.filter(x=>x.prod.id!==id);
+  updateCartCount();
+  renderDrawer();
+  renderProduits();
+}
+
+function openCheckout(){
+  closeCart();
+  const total = panier.reduce((s,x)=>s+(x.prod.prix_vente||0)*x.qte,0);
+  const summaryRows = panier.map(item=>`<div class="row"><span>${item.prod.nom} ×${item.qte}</span><span>${fAr((item.prod.prix_vente||0)*item.qte)}</span></div>`).join('');
+  document.getElementById('modal-content').innerHTML=`
+    <h3>📋 Votre commande</h3>
+    <p>Remplissez vos informations pour confirmer</p>
+    <div class="order-summary">
+      ${summaryRows}
+      <div class="row total"><span>Total à payer</span><span>${fAr(total)}</span></div>
+    </div>
+    <div class="form-group"><label>Votre nom complet *</label><input id="o-nom" placeholder="ex: Rakoto Marie" /></div>
+    <div class="form-group"><label>Numéro de téléphone *</label><input id="o-tel" type="tel" placeholder="ex: 034 XX XXX XX" /></div>
+    <div class="form-group"><label>Mode de livraison *</label>
+      <select id="o-livraison">
+        <option value="domicile">Livraison à domicile</option>
+        <option value="retrait">Retrait en main propre</option>
+      </select>
+    </div>
+    <div class="form-group" id="adresse-group"><label>Adresse de livraison *</label><textarea id="o-adresse" placeholder="Quartier, rue, numéro..."></textarea></div>
+    <div class="form-group"><label>Mode de paiement *</label>
+      <select id="o-paiement" onchange="updatePaymentInfo()">
+        <option value="mvola">MVola</option>
+        <option value="orange">Orange Money</option>
+      </select>
+    </div>
+    <div class="payment-box" id="payment-info">
+      <b>Envoyez ${fAr(total)} au :</b>
+      📱 MVola : <b>${MVOLA_NUM}</b><br>
+      Nom : <b>${SHOP_NAME}</b><br>
+      <small>Envoyez une capture d'écran de la confirmation par WhatsApp après validation.</small>
+    </div>
+    <div class="form-group"><label>Notes (facultatif)</label><input id="o-notes" placeholder="Instructions spéciales..." /></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCheckout()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmOrder()">✓ Confirmer la commande</button>
+    </div>`;
+  document.getElementById('o-livraison').addEventListener('change', function(){
+    document.getElementById('adresse-group').style.display = this.value==='domicile'?'block':'none';
+  });
+  document.getElementById('checkout-modal').classList.add('open');
+}
+
+function updatePaymentInfo(){
+  const mode = document.getElementById('o-paiement').value;
+  const total = panier.reduce((s,x)=>s+(x.prod.prix_vente||0)*x.qte,0);
+  const num = mode==='mvola' ? `📱 MVola : <b>${MVOLA_NUM}</b>` : `📱 Orange Money : <b>${ORANGE_NUM}</b>`;
+  document.getElementById('payment-info').innerHTML=`<b>Envoyez ${fAr(total)} au :</b><br>${num}<br>Nom : <b>${SHOP_NAME}</b><br><small>Envoyez une capture d'écran de la confirmation par WhatsApp après validation.</small>`;
+}
+
+function closeCheckout(){
+  document.getElementById('checkout-modal').classList.remove('open');
+}
+
+async function confirmOrder(){
+  const nom = document.getElementById('o-nom').value.trim();
+  const tel = document.getElementById('o-tel').value.trim();
+  const livraison = document.getElementById('o-livraison').value;
+  const adresse = document.getElementById('o-adresse')?.value?.trim()||'';
+  const paiement = document.getElementById('o-paiement').value;
+  const notes = document.getElementById('o-notes').value.trim();
+  if(!nom||!tel){alert('Veuillez remplir votre nom et téléphone');return;}
+  if(livraison==='domicile'&&!adresse){alert('Veuillez entrer votre adresse de livraison');return;}
+
+  const btn = document.querySelector('.btn-confirm');
+  btn.textContent='⏳ Traitement...';btn.disabled=true;
+
+  const today = new Date().toISOString().split('T')[0];
+  const orderRef = 'CMD-'+Date.now();
+
+  try{
+    // Enregistrer chaque produit du panier comme une vente
+    for(const item of panier){
+      await fetch(SB_URL+'/rest/v1/ventes', {
+        method:'POST',
+        headers:H,
+        body:JSON.stringify({
+          id:'V'+Date.now()+Math.random().toString(36).slice(2,6),
+          pid:item.prod.id,
+          qte:item.qte,
+          pu:item.prod.prix_vente||0,
+          date:today,
+          cli:nom+' ('+tel+')',
+          rem:`${orderRef} | ${livraison} | ${paiement} | ${adresse} | ${notes}`
+        })
+      });
+      // Mettre à jour le stock
+      const newStk = Math.max(0, item.prod.stk - item.qte);
+      await fetch(SB_URL+'/rest/v1/produits?id=eq.'+item.prod.id,{
+        method:'PATCH',headers:H,body:JSON.stringify({stk:newStk})
+      });
+    }
+
+    // Afficher confirmation
+    const total = panier.reduce((s,x)=>s+(x.prod.prix_vente||0)*x.qte,0);
+    document.getElementById('modal-content').innerHTML=`
+      <div class="success-modal">
+        <div class="success-icon">🎉</div>
+        <h3 style="font-size:18px;margin-bottom:8px">Commande confirmée !</h3>
+        <p style="color:#666;margin-bottom:16px">Merci ${nom}, votre commande a bien été enregistrée.</p>
+        <div class="order-summary" style="text-align:left">
+          <div class="row"><span>Référence</span><span><b>${orderRef}</b></span></div>
+          <div class="row"><span>Total</span><span><b>${fAr(total)}</b></span></div>
+          <div class="row"><span>Livraison</span><span>${livraison==='domicile'?'À domicile':'Retrait'}</span></div>
+          <div class="row"><span>Paiement</span><span>${paiement==='mvola'?'MVola':'Orange Money'}</span></div>
+        </div>
+        <div class="payment-box" style="text-align:left;margin-top:12px">
+          <b>🔔 N'oubliez pas :</b><br>
+          Envoyez <b>${fAr(total)}</b> via ${paiement==='mvola'?`MVola au ${MVOLA_NUM}`:`Orange Money au ${ORANGE_NUM}`}<br>
+          <small>Puis envoyez la capture d'écran au vendeur pour confirmer votre paiement.</small>
+        </div>
+        <button class="checkout-btn" style="margin-top:16px" onclick="closeCheckout();location.reload()">Fermer</button>
+      </div>`;
+
+    panier=[];
+    updateCartCount();
+  }catch(e){
+    btn.textContent='✓ Confirmer la commande';btn.disabled=false;
+    alert('Erreur lors de la commande: '+e.message);
+  }
+}
+
+loadProduits();
+setInterval(loadProduits, 30000);
+</script>
+</body>
+</html>
