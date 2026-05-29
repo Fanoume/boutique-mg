@@ -117,4 +117,163 @@
                 </div>
                 <div class="condition-item">
                     <h3 data-fr="📞 Contact" data-mg="📞 Makipag-ugnayan">📞 Contact</h3>
-                    <p data-fr="Accessible via Messenger (chat
+                    <p data-fr="Accessible via Messenger (chat le plus rapide)" 
+                       data-mg="Accessible sa Messenger (pinakamabilis na chat)">
+                        Via Messenger pour plus d'infos
+                    </p>
+                </div>
+            </div>
+            <div class="contact-info">
+                <h3 data-fr="📱 Informations de Contact" data-mg="📱 Impormasyon sa Makipag-ugnayan">📱 Informations de Contact</h3>
+                <div class="contact-method">
+                    💬 <strong data-fr="Messenger:" data-mg="Messenger:">Messenger:</strong> 
+                    <a href="https://m.me/61584437498327" target="_blank" style="color: #c0305a; text-decoration: none;">
+                        Fanoumé
+                    </a>
+                </div>
+                <div class="contact-method">
+                    📱 <strong data-fr="MVola:" data-mg="MVola:">MVola:</strong> 038 71 867 24
+                </div>
+                <div class="contact-method">
+                    🗺️ <strong data-fr="Localisation:" data-mg="Lokasyon:">Localisation:</strong> 
+                    <span data-fr="Saint-Étienne, France 🇫🇷 / Madagascar 🇲🇬" 
+                          data-mg="Saint-Étienne, France 🇫🇷 / Madagascar 🇲🇬">
+                        Saint-Étienne, France 🇫🇷 / Madagascar 🇲🇬
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+        </div>
+    </div>
+    <script>
+        const SUPABASE_URL = 'https://oxibglwyiygdruummwqq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_OD48fjY3xSdDmEiM9xMvAg_zcQsyvkB';
+        const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let currentLang = 'fr';
+        let allProducts = [];
+        let filteredProducts = [];
+        let selectedCategory = 'all';
+        async function init() {
+            await fetchProducts();
+            setupLanguageSwitcher();
+            setupFilters();
+            setupModal();
+        }
+        async function fetchProducts() {
+            try {
+                const { data, error } = await sbClient.from('produits').select('*').order('id', { ascending: true });
+                if (error) throw error;
+                allProducts = data || [];
+                extractCategories();
+                filterAndDisplay();
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('products-grid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #c0305a;">Erreur de chargement des produits</p>';
+            }
+        }
+        function extractCategories() {
+            const categories = [...new Set(allProducts.map(p => p.cat))].filter(Boolean);
+            const filtersContainer = document.getElementById('filters-container');
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.category = cat;
+                btn.textContent = cat;
+                btn.addEventListener('click', () => filterByCategory(cat, btn));
+                filtersContainer.appendChild(btn);
+            });
+        }
+        function filterByCategory(category, btn) {
+            selectedCategory = category;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterAndDisplay();
+        }
+        function filterAndDisplay() {
+            if (selectedCategory === 'all') {
+                filteredProducts = allProducts;
+            } else {
+                filteredProducts = allProducts.filter(p => p.cat === selectedCategory);
+            }
+            displayProducts();
+        }
+        function displayProducts() {
+            const grid = document.getElementById('products-grid');
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">Aucun produit disponible</p>';
+                return;
+            }
+            grid.innerHTML = filteredProducts.map(product => `
+                <div class="product-card">
+                    <img src="${product.photo || 'placeholder.jpg'}" alt="${product.nom}" class="product-image" 
+                         onclick="openImageModal('${product.photo}')">
+                    <div class="product-info">
+                        <div class="product-name">${product.nom}</div>
+                        <div class="product-stock ${product.stk <= 0 ? 'low' : ''}">
+                            ${product.stk > 0 ? '✅ En stock (' + product.stk + ')' : '❌ Rupture de stock'}
+                        </div>
+                        <div class="price-section">
+                            <span class="price">${formatPrice(product.prix_vente)} Ar</span>
+                            ${product.prix_barre ? `
+                                <span class="original-price">${formatPrice(product.prix_barre)} Ar</span>
+                                <span class="discount-badge">-${calculateDiscount(product.prix_vente, product.prix_barre)}%</span>
+                            ` : ''}
+                        </div>
+                        <button class="contact-product-btn" 
+                                onclick="contactViaMessenger('${product.nom.replace(/'/g, "\\'")}', '${product.prix_vente}')"
+                                ${product.stk <= 0 ? 'disabled style="opacity: 0.6; cursor: not-allowed; background: #ccc;"' : ''}>
+                            ${product.stk <= 0 ? '❌ Rupture' : '💬 Intéressé(e)'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function contactViaMessenger(productName, price) {
+            const message = `Bonjour! Je suis intéressé(e) par:\n\n📦 ${productName}\n💰 ${formatPrice(price)} Ar\n\nPourriez-vous m'envoyer les frais de livraison?`;
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://m.me/61584437498327?text=${encodedMessage}`, '_blank');
+        }
+        function formatPrice(price) {
+            return new Intl.NumberFormat('fr-FR').format(price);
+        }
+        function calculateDiscount(prix, prixBarre) {
+            return Math.round(((prixBarre - prix) / prixBarre) * 100);
+        }
+        function setupLanguageSwitcher() {
+            document.querySelectorAll('[data-lang]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentLang = btn.dataset.lang;
+                    document.querySelectorAll('[data-lang]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateLanguage();
+                });
+            });
+        }
+        function updateLanguage() {
+            document.querySelectorAll('[data-fr][data-mg]').forEach(element => {
+                element.textContent = element.dataset[currentLang];
+            });
+        }
+        function setupModal() {
+            const modal = document.getElementById('imageModal');
+            const closeBtn = document.querySelector('.close-modal');
+            closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        }
+        function openImageModal(src) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.src = src;
+            modal.classList.add('active');
+        }
+        init();
+    </script>
+</body>
+</html>
