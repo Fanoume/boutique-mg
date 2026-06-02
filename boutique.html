@@ -73,16 +73,16 @@
     </div>
     <div class="header">
         <div class="logo">
-      <img src="https://oxibglwyiygdruummwqq.supabase.co/storage/v1/object/public/photos/fanoume-logo.png" alt="Fanoumé" onerror="this.style.display='none'">
-    </div>
+            <img src="https://oxibglwyiygdruummwqq.supabase.co/storage/v1/object/public/photos/fanoume-logo.png" alt="Fanoumé" onerror="this.style.display='none'">
+        </div>
         <div class="header-right">
             <div class="lang-switcher">
                 <button class="lang-btn active" data-lang="fr">FR</button>
                 <button class="lang-btn" data-lang="mg">MG</button>
             </div>
             <div class="contact-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <a href="https://facebook.com/profile.php?id=828604777013886" class="contact-btn" target="_blank" title="Facebook">
-                    f Facebook
+                <a href="https://m.me/828604777013886" class="contact-btn" target="_blank" title="Messenger">
+                    💬 Messenger
                 </a>
             </div>
         </div>
@@ -94,7 +94,6 @@
            data-mg="Fandaisan-toerana ANKORONDRANO • Karamihan MVola talohan'ny aloa">
             Retrait en point relais à ANKORONDRANO • Paiement MVola avant livraison
         </p>
-        <!-- Section "Pour commander:" masquée -->
         <div class="delivery-info">
             🎯 Point Relais Unique: ANKORONDRANO • 📍 Adresse exacte fournie après commande
         </div>
@@ -134,7 +133,7 @@
                     <h3 data-fr="📞 Contact" data-mg="📞 Famatoran">📞 Contact</h3>
                     <p data-fr="Via Messenger ou Facebook (réponse rapide)" 
                        data-mg="Amin'ny Messenger na Facebook">
-                        Messenger • Facebook
+                        Messenger • Réponse rapide
                     </p>
                 </div>
             </div>
@@ -142,17 +141,7 @@
                 <h3 data-fr="📱 Contactez-nous" data-mg="📱 Makipitsipitsy">📱 Contactez-nous</h3>
                 <div class="contact-method">
                     💬 <strong>Messenger:</strong> 
-                    <div class="fb-send-to-messenger" 
-                         messenger_app_id="828604777013886" 
-                         page_id="828604777013886"
-                         data-ref="contact_info"
-                         color="blue"
-                         size="large">
-                    </div>
-                </div>
-                <div class="contact-method">
-                    f <strong>Facebook:</strong> 
-                    <a href="https://www.facebook.com/profile.php?id=828604777013886" target="_blank">Cliquez ici</a>
+                    <a href="https://m.me/828604777013886" target="_blank">Cliquez ici</a>
                 </div>
                 <div class="contact-method">
                     📱 <strong>MVola:</strong> 038 71 867 24
@@ -172,58 +161,30 @@
     </div>
 
     <script>
-        // ===== TRACKING ANALYTICS =====
         const SUPABASE_URL = 'https://oxibglwyiygdruummwqq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_OD48fjY3xSdDmEiM9xMvAg_zcQsyvkB';
         const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Générer/récupérer visitor_id
-        function getVisitorId() {
-          let vid = localStorage.getItem('fanoume_visitor_id');
-          if (!vid) {
-            vid = 'v_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            localStorage.setItem('fanoume_visitor_id', vid);
-          }
-          return vid;
-        }
-
-        const VISITOR_ID = getVisitorId();
-
-        // Tracker page view
-        async function trackPageView() {
-          try {
-            await sbClient.from('page_views').insert({
-              page: 'boutique',
-              visitor_id: VISITOR_ID
-            });
-          } catch (e) { console.error('Track error:', e); }
-        }
-
-        // Tracker événement (clic, etc)
-        async function trackEvent(eventType, productId = null) {
-          try {
-            await sbClient.from('events').insert({
-              event_type: eventType,
-              product_id: productId,
-              visitor_id: VISITOR_ID,
-              page: 'boutique'
-            });
-          } catch (e) { console.error('Track error:', e); }
-        }
-
-        // Tracker au chargement
-        window.addEventListener('load', () => trackPageView());
-    </script>
-
-    <script>
-        // ===== CODE ORIGINAL =====
 
         let currentLang = 'fr';
         let allProducts = [];
         let filteredProducts = [];
         let selectedCategory = 'all';
+        let visitorId = localStorage.getItem('fanoume_visitor_id') || 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        if (!localStorage.getItem('fanoume_visitor_id')) localStorage.setItem('fanoume_visitor_id', visitorId);
+
+        async function trackEvent(eventType, productId = null) {
+            try {
+                await sbClient.from('events').insert({
+                    event_type: eventType,
+                    product_id: productId,
+                    visitor_id: visitorId,
+                    page: 'boutique'
+                });
+            } catch (e) { console.log('Track error:', e); }
+        }
 
         async function init() {
+            await trackEvent('page_view');
             await fetchProducts();
             setupLanguageSwitcher();
             setupFilters();
@@ -302,7 +263,7 @@
                         </div>
                         <div class="buttons-group">
                             ${product.stk > 0 ? `
-                                <a class="contact-product-btn" href="https://www.facebook.com/messages/t/828604777013886?text=${encodeURIComponent(`Je veux: ${product.nom} - ${formatPrice(product.prix_vente)} Ar\n${product.photo}`)}" target="_blank" title="Commander" style="text-decoration: none;" onclick="trackEvent('click_commander', '${product.id}')">
+                                <a class="contact-product-btn" href="https://m.me/828604777013886?text=${encodeURIComponent(`Je veux: ${product.nom} - ${formatPrice(product.prix_vente)} Ar\n${product.photo}`)}" target="_blank" title="Commander" style="text-decoration: none;" onclick="trackEvent('click_commander', '${product.id}')">
                                     🛍️ Commander
                                 </a>
                             ` : `
